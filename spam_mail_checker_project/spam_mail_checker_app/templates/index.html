@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spam Detection</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .spinner-border {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6 col-xl-4">
+                <h1 class="mb-4 text-center">Spam Mail Detection</h1>
+                <form id="inputForm" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="textInput">Enter Message:</label>
+                        <textarea class="form-control" id="textInput" name="input_text" rows="4" aria-label="Enter your message here"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Predict</button>
+                </form>
+                <div id="spinner" class="spinner-border text-primary mt-3" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <div id="result" class="mt-4 text-center" style="font-size: 1.2rem; font-weight: bold;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <script>
+        document.getElementById('inputForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            document.getElementById('spinner').style.display = 'block';
+
+            var formData = new FormData(this);
+
+            fetch('{% url "predict_spam" %}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                var resultDiv = document.getElementById('result');
+                if (data.result === "Spam") {
+                    resultDiv.innerHTML = "<span class='text-danger'>Prediction: " + data.result + "</span>";
+                } else {
+                    resultDiv.innerHTML = "<span class='text-success'>Prediction: " + data.result + "</span>";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerText = "Error: Unable to fetch prediction. Please try again later.";
+            })
+            .finally(() => {
+                document.getElementById('spinner').style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
